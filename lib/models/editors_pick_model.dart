@@ -79,12 +79,16 @@ class Track {
   final String name;
   final List<Artist> artists;
   final int durationMs;
+  final String? previewUrl; // Add previewUrl
+  final String? uri; // Add uri
 
   Track({
     required this.id,
     required this.name,
     required this.artists,
     required this.durationMs,
+    this.previewUrl,
+    this.uri,
   });
 
   factory Track.fromJson(Map<String, dynamic> json) {
@@ -97,6 +101,8 @@ class Track {
               .toList() ??
           [],
       durationMs: json['duration_ms'] ?? 0,
+      previewUrl: json['preview_url'], // Parse preview_url
+      uri: json['uri'], // Parse uri
     );
   }
 }

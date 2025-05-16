@@ -10,11 +10,8 @@ import 'package:spotify_clone/providers/categories_provider.dart';
 import 'package:spotify_clone/providers/featured_playlist_providers.dart';
 import 'package:spotify_clone/providers/login_provider.dart';
 import 'package:spotify_clone/providers/new_releases_provider.dart';
-import 'package:spotify_clone/screens/editorspicscreen.dart.dart';
 import 'package:spotify_clone/screens/loader.dart';
 import 'package:spotify_clone/screens/login_page.dart';
-import 'package:spotify_clone/screens/newreleases.dart';
-import 'package:spotify_clone/screens/genrescreen.dart';
 import 'package:spotify_clone/shared_utils.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -46,11 +43,14 @@ class _HomePageState extends ConsumerState<HomePage> {
       });
       log('HomePage Token: $token');
       try {
-        await Future.wait([
-          ref.read(featuredProvider.notifier).getFeatured(token),
-          ref.read(categoriesProvider.notifier).getCategories(token),
-          ref.read(albumsProvider.notifier).getAlbums(token),
-        ]);
+        await Future.wait(
+          [
+                ref.read(featuredProvider.notifier).getFeatured(token),
+                ref.read(categoriesProvider.notifier).getCategories(token),
+                ref.read(albumsProvider.notifier).getAlbums(token),
+              ]
+              as Iterable<Future<void>>,
+        ); // Explicit cast to Iterable<Future<void>>
       } catch (e) {
         log('Error fetching data: $e');
         setState(() {
@@ -200,17 +200,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                               onTap: () {
                                 if (authToken != null) {
                                   log(
-                                    'Navigating to EditorsPickPage with token: $authToken, playlistId: ${playlist.id}',
+                                    'Navigating to EditorsPickPage with playlistId: ${playlist.id}',
                                   );
-                                  context.go(
-                                    '/editors-pick/${playlist.id}?token=$authToken',
-                                  );
+                                  context.push('/editors-pick/${playlist.id}');
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
                                         'Authentication token not found',
                                       ),
+                                      backgroundColor: Colors.red,
                                     ),
                                   );
                                 }
@@ -233,7 +232,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                     as ImageProvider,
                                         fit: BoxFit.cover,
                                         onError: (exception, stackTrace) {
-                                          print('Image load error: $exception');
+                                          log('Image load error: $exception');
                                         },
                                       ),
                                     ),
@@ -333,17 +332,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                               onTap: () {
                                 if (authToken != null) {
                                   log(
-                                    'Navigating to GenrePage with token: $authToken, categoryId: ${category.id}',
+                                    'Navigating to GenrePage with categoryId: ${category.id}',
                                   );
-                                  context.go(
-                                    '/genre/${category.id}?token=$authToken',
-                                  );
+                                  context.push('/genre/${category.id}');
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
                                         'Authentication token not found',
                                       ),
+                                      backgroundColor: Colors.red,
                                     ),
                                   );
                                 }
@@ -369,7 +367,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                     exception,
                                                     stackTrace,
                                                   ) {
-                                                    print(
+                                                    log(
                                                       'Category image load error: $exception',
                                                     );
                                                   },
@@ -463,17 +461,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                               onTap: () {
                                 if (authToken != null) {
                                   log(
-                                    'Navigating to NewReleasesPage with token: $authToken, albumId: ${album.id}',
+                                    'Navigating to NewReleasesPage with albumId: ${album.id}',
                                   );
-                                  context.go(
-                                    '/new-releases/${album.id}?token=$authToken',
-                                  );
+                                  context.push('/new-releases/${album.id}');
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
                                         'Authentication token not found',
                                       ),
+                                      backgroundColor: Colors.red,
                                     ),
                                   );
                                 }
@@ -493,12 +490,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                                               ? DecorationImage(
                                                 image: NetworkImage(imageUrl),
                                                 fit: BoxFit.fitHeight,
-
                                                 onError: (
                                                   exception,
                                                   stackTrace,
                                                 ) {
-                                                  print(
+                                                  log(
                                                     'Album image load error: $exception',
                                                   );
                                                 },
@@ -525,7 +521,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 14,
-
                                       fontWeight: FontWeight.bold,
                                     ),
                                     textAlign: TextAlign.center,

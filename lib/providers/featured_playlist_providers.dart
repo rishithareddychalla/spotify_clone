@@ -38,7 +38,6 @@ class FeaturedPlaylistProvider extends StateNotifier<FeaturedState> {
 
       if (response['status'] == 200) {
         final Featured featuredData = Featured.fromJson(response['body']);
-
         final List<Item> featuredPlaylists = featuredData.playlists.items;
 
         state = state.copyWith(featured: featuredPlaylists, isLoading: false);
