@@ -43,6 +43,8 @@ dependencies:
   flutter_spinkit: ^5.2.1
   just_audio: ^0.9.36
   meta: ^1.16.0
+  supabase_flutter: ^2.9.0
+  flutter_rating_bar: ^4.0.1
 
 dev_dependencies:
   flutter_test:

@@ -9,9 +9,20 @@ import 'package:spotify_clone/screens/homeerror.dart';
 import 'package:spotify_clone/screens/login_page.dart';
 import 'package:spotify_clone/screens/newreleases.dart';
 import 'package:spotify_clone/providers/login_provider.dart';
+import 'package:spotify_clone/screens/review_list_screen.dart';
+import 'package:spotify_clone/screens/review_submit_screen.dart';
 import 'package:spotify_clone/shared_utils.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://bymdiwuuuzrhvatasurm.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5bWRpd3V1dXpyaHZhdGFzdXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMTE0MDksImV4cCI6MjA2MzU4NzQwOX0.affNTIdZHs1pd11GKhOJsUKyUENsJenli3SPlnrafdU',
+  );
+
   runApp(ProviderScope(child: const MyApp()));
 }
 
@@ -58,6 +69,17 @@ class MyApp extends ConsumerWidget {
             final token = ref.read(loginProvider).token ?? '';
             return NotFoundPage();
           },
+        ),
+        GoRoute(
+          path: '/review',
+          builder: (context, state) {
+            final token = ref.read(loginProvider).token ?? '';
+            return ReviewSubmit();
+          },
+        ),
+        GoRoute(
+          path: '/reviewlist',
+          builder: (context, state) => const ReviewList(),
         ),
       ],
       redirect: (context, state) async {

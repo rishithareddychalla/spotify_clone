@@ -106,44 +106,41 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:spotify_clone/models/editors_pick_model.dart';
+import 'dart:developer';
 
-/// State class for audio player, holding playback state and player instance.
 class AudioPlayerState {
   final AudioPlayer audioPlayer;
   final bool isPlaying;
-  final Track? currentTrack; // Changed from currentTrackId
+  final String? currentTrackId;
   final String? errorMessage;
 
   AudioPlayerState({
     required this.audioPlayer,
     this.isPlaying = false,
-    this.currentTrack,
+    this.currentTrackId,
     this.errorMessage,
   });
 
   AudioPlayerState copyWith({
     bool? isPlaying,
-    Track? currentTrack,
+    String? currentTrackId,
     String? errorMessage,
   }) {
     return AudioPlayerState(
       audioPlayer: audioPlayer,
       isPlaying: isPlaying ?? this.isPlaying,
-      currentTrack: currentTrack ?? this.currentTrack,
+      currentTrackId: currentTrackId ?? this.currentTrackId,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 }
 
-/// Notifier to manage audio playback with just_audio.
 class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
   AudioPlayerNotifier() : super(AudioPlayerState(audioPlayer: AudioPlayer()));
 
-  /// Plays a track.
-  Future<void> playTrack(Track track) async {
-    if (track.previewUrl == null || track.previewUrl!.isEmpty) {
-      print('No preview URL for track: ${track.id}');
+  Future<void> playTrack(String trackId, String? previewUrl) async {
+    if (previewUrl == null || previewUrl.isEmpty) {
+      log('No preview URL for track: $trackId');
       state = state.copyWith(
         errorMessage: 'No preview available for this track',
         isPlaying: false,
@@ -152,22 +149,26 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
     }
 
     try {
-      if (state.currentTrack?.id != track.id) {
+      if (state.currentTrackId != trackId) {
         await state.audioPlayer.stop();
-        print('Playing URL: ${track.previewUrl}');
-        await state.audioPlayer.setUrl(track.previewUrl!);
+        log('Playing URL: $previewUrl');
+        await state.audioPlayer.setUrl(previewUrl);
         await state.audioPlayer.play();
         state = state.copyWith(
-          currentTrack: track,
+          currentTrackId: trackId,
           errorMessage: null,
           isPlaying: true,
+        );
+        log(
+          'State updated: isPlaying=${state.isPlaying}, currentTrackId=${state.currentTrackId}',
         );
       } else if (!state.isPlaying) {
         await state.audioPlayer.play();
         state = state.copyWith(isPlaying: true, errorMessage: null);
+        log('State updated: isPlaying=${state.isPlaying}');
       }
     } catch (e, stackTrace) {
-      print('Error playing track: $e\n$stackTrace');
+      log('Error playing track: $e\n$stackTrace');
       state = state.copyWith(
         isPlaying: false,
         errorMessage: 'Failed to play track: $e',
@@ -175,13 +176,13 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
     }
   }
 
-  /// Pauses the current track.
   Future<void> pauseTrack() async {
     try {
       await state.audioPlayer.pause();
       state = state.copyWith(isPlaying: false, errorMessage: null);
+      log('State updated: isPlaying=${state.isPlaying}');
     } catch (e) {
-      print('Error pausing track: $e');
+      log('Error pausing track: $e');
       state = state.copyWith(
         isPlaying: false,
         errorMessage: 'Failed to pause track: $e',
@@ -189,12 +190,14 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
     }
   }
 
-  /// Toggles play/pause for the given track.
-  Future<void> togglePlayPause(Track track) async {
-    if (state.currentTrack?.id == track.id && state.isPlaying) {
+  Future<void> togglePlayPause(String trackId, String? previewUrl) async {
+    log(
+      'togglePlayPause: trackId=$trackId, isPlaying=${state.isPlaying}, currentTrackId=${state.currentTrackId}',
+    );
+    if (state.currentTrackId == trackId && state.isPlaying) {
       await pauseTrack();
     } else {
-      await playTrack(track);
+      await playTrack(trackId, previewUrl);
     }
   }
 
@@ -205,7 +208,6 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
   }
 }
 
-/// Riverpod provider for audio playback.
 final audioPlayerProvider =
     StateNotifierProvider<AudioPlayerNotifier, AudioPlayerState>(
       (ref) => AudioPlayerNotifier(),
